@@ -6,7 +6,7 @@
 var workerSwarm =
 {
     vars:{
-        balancingStrategy:"Round-Robin",
+        balacingStrategy:"Round-Robin",
         debug:"false"
     },
     doWork:function(balacingStrategy)  {
@@ -35,7 +35,8 @@ var workerSwarm =
         code : function (){
             taskDone(this.selectedWorker);
             this.result = "succes";
-            this.swarm("result", this.currentSession());
+            //this.swarm("result", this.currentSession());
+            this.home("result");
         }
     }
 };

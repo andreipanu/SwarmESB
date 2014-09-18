@@ -16,16 +16,16 @@
  "Launcher":{
            "autorun":[
                        {"node":"adapters/Null.js",                  "enabled":true },
-                       {"node":"adapters/Logger.js",                "enabled":true },
+                       {"node":"adapters/Logger.js",                "enabled":false },
                        {"node":"adapters/SharedAdapter.js",         "enabled":true },
                        {"node":"adapters/Balancer.js",              "enabled":true },
-                       {"node":"adapters/Worker.js",                "enabled":true },
+                       {"node":"adapters/Worker.js",                "enabled":true, "times":"5" },
                        {"node":"adapters/Mailer.js",                "enabled":false},
                        {"node":"adapters/SessionsRegistry.js",      "enabled":true },
-                       {"node":"adapters/WSServer.js",              "enabled":true },
+                       {"node":"adapters/WSServer.js",              "enabled":false },
                        {"node":"adapters/UsersRepo.js",             "enabled":false},
                        {"node":"adapters/ClientAdapter.js",         "enabled":true },
-                       {"node":"adapters/WebClientAdapter.js",      "enabled":true }
+                       {"node":"adapters/WebClientAdapter.js",      "enabled":false }
            ]
   },
   "ClientAdapter":{
@@ -35,12 +35,12 @@
   "SwarmHttpServer":{
          "port":5000,
          "bindAddress":"0.0.0.0",
-         "home" : "e:/work/swarmESB/static"
+         "home" : "/root/work/gitrepos/andreipanu/SwarmESB/static"
     },
    "WSServer":{
               "port":5001,
               "bindAddress":"0.0.0.0",
-              "home" : "e:/work/swarmESB/static"
+              "home" : "/root/work/gitrepos/andreipanu/SwarmESB/static"
          }
 
 }
