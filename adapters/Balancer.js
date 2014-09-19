@@ -46,6 +46,28 @@ getAllWorkers = function(){
     });
 }
 
+// to rewrite; it's not a nice way to identify a map worker node
+getAllMapWorkers = function() {
+    var workers = [];
+    for (var i = 0; i < workersArray.length; i++) {
+        if (workersArray[i].workerName.indexOf("Map") != -1) {
+            workers.push(workersArray[i].workerName);
+        }
+    }
+    return workers;
+}
+
+// to rewrite; it's not a nice way to identify a reduce worker node
+getAllReduceWorkers = function() {
+    var workers = [];
+    for (var i = 0; i < workersArray.length; i++) {
+        if (workersArray[i].workerName.indexOf("Reduce") != -1) {
+            workers.push(workersArray[i].workerName);
+        }
+    }
+    return workers;
+}
+
 var robinPos = -1;
 function roundRobin(){
     //cprint(J(workersArray));
