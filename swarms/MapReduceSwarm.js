@@ -10,6 +10,7 @@ var mapReduceSwarm =
         dividedInput:null,
         mapWorkers:null,
         reduceWorkers:null,
+        mapPhaseOutputList:null,
         debug:"false"
     },
     doWork:function(documentContent) {
@@ -17,20 +18,21 @@ var mapReduceSwarm =
         this.dividedInput = [];
         this.mapWorkers = [];
         this.reduceWorkers = [];
+        this.mapPhaseOutputList = [];
         this.swarm("splitInput");
     },
     splitInput:{
         node:"ClientAdapter",
         code:function() { 
-            /* create an array of objects; each object contians a single key/value pair */
+            /* create an array of objects; each object contains a single key/value pair */
             var arrayOfSentences = this.documentContent.split(".");
             for (var i = 0; i < arrayOfSentences.length; i++) {
-                var obj = {};
-                obj[arrayOfSentences[i].trim().toLowerCase()] = 1;
-                this.dividedInput.push(obj);
+                var slice = {};
+                slice[arrayOfSentences[i].trim().toLowerCase()] = 1;
+                this.dividedInput.push(slice);
             }
             console.log(">>>>> splitted input in key/value pairs (it is prepared for map phase)");
-            this.documentContent = "";
+            this.documentContent = null; // we don't need to carry on the original input data
             this.swarm("getWorkerNodes");
         }
     },
@@ -45,42 +47,80 @@ var mapReduceSwarm =
     executeMapPhase:{
         node:"ClientAdapter",
         code:function() {
+            //
+            // create a swarm for each job and send it to a specific worker
+            // 
+            // 
+            var sutil = require('swarmutil');
+            var adapterPort         = 3000;
+            var adapterHost         = "localhost";
+            swarmSettings.authentificationMethod = "testCtor";
+            globalVerbosity = false;
+            var noOfReceivedResults = 0;
+            var noOfSentJobs = 0;
+            var mapPhaseOutput = [];
+
             var j = 0;
             for (var i = 0; i < this.dividedInput.length; i++) {
-                var obj = { input: "", workerName: "" };
-                obj.input = this.dividedInput[i];
-                obj.workerName = this.mapWorkers[j];
-                //startSwarm("MapSwarm.js", "doWork", obj);
+                var job = { input: {}, workerName: "" };
+                job.input = this.dividedInput[i];
+                job.workerName = this.mapWorkers[j];
+                sendMapSwarm(job);
+                noOfSentJobs++;
                 if (j == this.mapWorkers.length - 1) {
                     j = 0;
-                }
-                else {
+                } else {
                     j++;
                 }
-                console.log(">>>>> sent input: " + obj.input + " to worker: " + obj.workerName);
             }
-            //this.on("MapSwarm.js", mapOutputReceived);
+            
+            function sendMapSwarm(job) {
+                var client = sutil.createClient(adapterHost, adapterPort, "UserForStartSwarmTest", "ok","BalancerTest");
+                client.startSwarm("MapWorkerSwarm.js", "doWork", job);
+                client.on("MapWorkerSwarm.js", getMapResults);
+                console.log(">>>>> sent to worker: " + job.workerName + " the input: " + Object.keys(job.input));
+            }
 
-            /*function mapOutputReceived(obj) {
-                console.log(">>>>> maxOutputReceived() call");
-            }*/
+            function getMapResults(results){
+                //console.log(">>>>> received the following results" + results.wordAppearancesArray);
+                mapPhaseOutput = mapPhaseOutput.concat(results.wordAppearancesArray);
+                noOfReceivedResults++;
+                if (noOfReceivedResults == noOfSentJobs) { // we have received the results from all map workers
+                    console.log(">>>>> map phase finished; we have received " + mapPhaseOutput.length + " objects");
+                    startReducePhase(mapPhaseOutput);
+                }
+            }
+
+            function startReducePhase(output) {
+                this.mapPhaseOutputList = output;
+                //this.swarm("executeReducePhase");
+            }
+        }
+    },
+    executeReducePhase:{
+        node:"ClientAdapter",
+        code:function() {
 
             var sutil = require('swarmutil');
             var adapterPort         = 3000;
             var adapterHost         = "localhost";
             swarmSettings.authentificationMethod = "testCtor";
-            var client = sutil.createClient(adapterHost, adapterPort, "UserForStartSwarmTest", "ok","BalancerTest");
+            globalVerbosity = false;
 
-            client.startSwarm("LaunchingTest.js","clientCtor");
-
-            client.on("LaunchingTest.js",getGreetings);
-
-            function getGreetings(obj){
-                var msg = obj.message;
-                console.log(">>>>> " + msg);
+            var uniqueKeysArray = buildUniqueKeysArray();
+            
+            function buildUniqueKeysArray() {
+                var keys = [];
+                for (var i = 0; i < this.mapPhaseOutputList.length; i++) {
+                    var key = Object.keys(mapPhaseOutputList[i])[0];
+                    if (!keys.contains(key)) {
+                        keys.push(key);
+                    }
+                }
+                console.log(">>>>> we have identified " + keys.length + " unique keys");
             }
         }
-    }
+    }    
 };
 
 mapReduceSwarm;

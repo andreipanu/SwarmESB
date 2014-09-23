@@ -41,7 +41,7 @@ registerSession = function(sessionId, swarm){
         sessions[sessionId]     = session;
         rememberUserSession(swarm.userId, session);
 
-        cprint("Registering session " + sessionId , " Sessions:" + J(sessions) );
+        //cprint("Registering session " + sessionId , " Sessions:" + J(sessions) );
 
 }
 

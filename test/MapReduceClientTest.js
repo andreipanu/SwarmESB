@@ -1,19 +1,20 @@
 var fs = require('fs');
+var util                = require("swarmutil");
+var assert              = require('assert');
 
 var INPUT_FILE="input_mapreduce.txt";
 
 var adapterPort         = 3000;
 var adapterHost         = "localhost";
-var util                = require("swarmutil");
-var assert              = require('assert');
 
+swarmSettings.authentificationMethod = "testCtor";
+globalVerbosity = false;
 
 fs.readFile(INPUT_FILE, 'utf8', function(err,fileContent) {
 	if (err) {
 		return console.log(err);
 	}
 
-	swarmSettings.authentificationMethod = "testCtor";
 	var client = util.createClient(adapterHost, adapterPort, "UserForStartSwarmTest", "ok","BalancerTest");
 
 	client.startSwarm("MapReduceSwarm.js","doWork",fileContent);
@@ -21,16 +22,13 @@ fs.readFile(INPUT_FILE, 'utf8', function(err,fileContent) {
 	client.on("MapReduceSwarm.js",getGreetings);
 })
 
-var msg = "none";
-
 function getGreetings(obj){
-    msg = obj.result;
     cprint("Work finished in " + obj.selectedWorker);
 }
 
 setTimeout (
-    function(){
-        assert.equal(msg,"succes");
+    function() {
         process.exit(1);
     },
-    3000);
+    3000
+);
