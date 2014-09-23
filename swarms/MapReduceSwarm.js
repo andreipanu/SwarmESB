@@ -74,6 +74,8 @@ var mapReduceSwarm =
                     j++;
                 }
             }
+
+            this.swarm("executeReducePhase");
             
             function sendMapSwarm(job) {
                 var client = sutil.createClient(adapterHost, adapterPort, "UserForStartSwarmTest", "ok","BalancerTest");
@@ -94,6 +96,9 @@ var mapReduceSwarm =
 
             function startReducePhase(output) {
                 this.mapPhaseOutputList = output;
+                var fs = require('fs');
+                fs.writeFileSync('done','');
+                console.log(">>>>> created file");
                 //this.swarm("executeReducePhase"); // here we cannot call this function
             }
         }
@@ -102,7 +107,11 @@ var mapReduceSwarm =
         node:"ClientAdapter",
         code:function() {
 
-            var sutil = require('swarmutil');
+            var fs = require('fs');
+            while (!fs.existsSync("done")) { }
+            console.log(">>>>> file found, continuing...");
+
+            /*var sutil = require('swarmutil');
             var adapterPort         = 3000;
             var adapterHost         = "localhost";
             swarmSettings.authentificationMethod = "testCtor";
@@ -119,7 +128,7 @@ var mapReduceSwarm =
                     }
                 }
                 console.log(">>>>> we have identified " + keys.length + " unique keys");
-            }
+            }*/
         }
     }    
 };
