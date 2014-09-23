@@ -48,9 +48,10 @@ var mapReduceSwarm =
         node:"ClientAdapter",
         code:function() {
             //
-            // create a swarm for each job and send it to a specific worker
-            // 
-            // 
+            // create a swarm for each key/value pair and send it to a specific worker;
+            // this following approach/implementation is not ok, we should directly send a swarm 
+            // from here, but the function startSwarm() doesn't emit an event when the result is returned
+            //
             var sutil = require('swarmutil');
             var adapterPort         = 3000;
             var adapterHost         = "localhost";
@@ -93,7 +94,7 @@ var mapReduceSwarm =
 
             function startReducePhase(output) {
                 this.mapPhaseOutputList = output;
-                //this.swarm("executeReducePhase");
+                //this.swarm("executeReducePhase"); // here we cannot call this function
             }
         }
     },
