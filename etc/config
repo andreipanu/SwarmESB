@@ -27,7 +27,7 @@
                        {"node":"adapters/ClientAdapter.js",         "enabled":true },
                        {"node":"adapters/WebClientAdapter.js",      "enabled":false },
                        {"node":"adapters/WorkerMap.js",             "enabled":true, "times":"5" },
-                       {"node":"adapters/WorkerReduce.js",          "enabled":true, "times":"5" }
+                       {"node":"adapters/WorkerReduce.js",          "enabled":true, "times":"2" }
            ]
   },
   "ClientAdapter":{
