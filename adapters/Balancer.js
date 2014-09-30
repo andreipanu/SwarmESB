@@ -50,8 +50,8 @@ getAllWorkers = function(){
 getAllMapWorkers = function() {
     var workers = [];
     for (var i = 0; i < workersArray.length; i++) {
-        if (workersArray[i].workerName.indexOf("Map") != -1) {
-            workers.push(workersArray[i].workerName);
+        if (workersArray[i].workerName.indexOf("WorkerMap") != -1) {
+            workers.push(workersArray[i]);
         }
     }
     return workers;
@@ -61,11 +61,41 @@ getAllMapWorkers = function() {
 getAllReduceWorkers = function() {
     var workers = [];
     for (var i = 0; i < workersArray.length; i++) {
-        if (workersArray[i].workerName.indexOf("Reduce") != -1) {
-            workers.push(workersArray[i].workerName);
+        if (workersArray[i].workerName.indexOf("WorkerReduce") != -1) {
+            workers.push(workersArray[i]);
         }
     }
     return workers;
+}
+
+// return a (available) map worker node based on round robin scheduling
+var workerRobinPos = -1;
+getMapWorker = function() {
+    var mapWorkers = getAllMapWorkers();
+    if (mapWorkers.length != 0) {
+        if (workerRobinPos == mapWorkers.length - 1) { workerRobinPos = -1; } // reset position index after each cycle
+        workerRobinPos++;
+        workerRobinPos %= mapWorkers.length;
+        return mapWorkers[workerRobinPos].workerName;
+    } else {
+        logInfo("Could not choose a map worker");
+        return null;
+    }
+}
+
+// return a (available) reduce worker node based on round robin scheduling
+var reducerRobinPos = -1;
+getReduceWorker = function() {
+    var reduceWorkers = getAllReduceWorkers();
+    if (reduceWorkers.length != 0) {
+        if (reducerRobinPos == reduceWorkers.length - 1) { reducerRobinPos = -1; } // reset position index after each cycle
+        reducerRobinPos++;
+        reducerRobinPos %= reduceWorkers.length;
+        return reduceWorkers[reducerRobinPos].workerName;
+    } else {
+        logInfo("Could not choose a reduce worker");
+        return null;
+    }
 }
 
 var robinPos = -1;

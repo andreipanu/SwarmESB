@@ -33,11 +33,6 @@ var mapReduceSwarm =
     distributeLoad:{
         node:"Balancer",
         code:function() {
-            var mapWorkers = getAllMapWorkers();
-            var reduceWorkers = getAllReduceWorkers();
-            var n = 0;
-            var m = 0;
-
             var ctx = getContext("balancer");
             ctx.finishedReducerJobs = 0;
             ctx.reducersResponseCounter = 0;
@@ -48,19 +43,15 @@ var mapReduceSwarm =
             this.chosenReduceWorker = "";
             
             for (this.currentChunk = 0; this.currentChunk < this.dividedInput.length; this.currentChunk++) {
-                var chosenMapWorker = mapWorkers[n % mapWorkers.length];
-                this.chosenReduceWorker = reduceWorkers[m % reduceWorkers.length];
-                n++;
-                if (n == mapWorkers.length) { n = 0; }
-                m++;
-                if (m == reduceWorkers.length) { m = 0; }
+                var chosenMapWorker = getMapWorker();
+                this.chosenReduceWorker = getReduceWorker();
                 console.log(">>>>> [Balancer] sent swarm to worker " + chosenMapWorker + " and reducer " + this.chosenReduceWorker);
 
-                this.swarm("executeMapPhase", chosenMapWorker);
+                //this.swarm("executeMapPhase", chosenMapWorker);
 
             }
         }
-    },
+    },    
     executeMapPhase:{
         node:"*",
         code:function() {
