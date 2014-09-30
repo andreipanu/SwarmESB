@@ -19,7 +19,7 @@
                        {"node":"adapters/Logger.js",                "enabled":false },
                        {"node":"adapters/SharedAdapter.js",         "enabled":true },
                        {"node":"adapters/Balancer.js",              "enabled":true },
-                       {"node":"adapters/Worker.js",                "enabled":true, "times":"2" },
+                       {"node":"adapters/Worker.js",                "enabled":false, "times":"5" },
                        {"node":"adapters/Mailer.js",                "enabled":false},
                        {"node":"adapters/SessionsRegistry.js",      "enabled":true },
                        {"node":"adapters/WSServer.js",              "enabled":false },
