@@ -10,6 +10,8 @@ var adapterHost         = "localhost";
 swarmSettings.authentificationMethod = "testCtor";
 globalVerbosity = false;
 
+var start = new Date().getTime();
+
 fs.readFile(INPUT_FILE, 'utf8', function(err,fileContent) {
 	if (err) {
 		return console.log(err);
@@ -28,11 +30,15 @@ function displayResults(response) {
     	var word = Object.keys(results[i])[0];
     	console.log(word + " : " + results[i][word]);
     }
+    var end = new Date().getTime();
+    var time = end - start;
+    console.log(">>>>> execution time: " + time + "ms");
     process.exit(1);
 }
 
 setTimeout (
     function() {
+        console.log("process timed out, exiting...");
         process.exit(1);
     },
     10000
