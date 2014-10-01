@@ -1,7 +1,7 @@
 /**
- *
+ * 
  *  
- *
+ * 
  */
 var mapReduceSwarm =
 {
@@ -30,36 +30,33 @@ var mapReduceSwarm =
             this.swarm("distributeLoad");
         }
     },
-    distributeLoad:{
+    distributeLoad:{ // phase that gives tasks (chunks of data) to map and reducer workers
         node:"Balancer",
         code:function() {
             var ctx = getContext("balancer");
-            ctx.finishedReducerJobs = 0;
-            ctx.reducersResponseCounter = 0;
-            ctx.finalResults = [];
+            ctx.finishedReducerJobs = 0; // increments when each reducer sends back a swarm with results (after each reduce phase)
+            ctx.reducersResponseCounter = 0; // increments when each reducer sends its final (partial) results
+            ctx.finalResults = []; // final results from all reduce workers are collected here
 
-            this.chunkCount = this.dividedInput.length;
-            this.currentChunk = 0;
-            this.chosenReduceWorker = "";
+            this.chunkCount = this.dividedInput.length; // the number of chunks sent to map workers
+            this.currentChunk = 0; // denotes each map worker's allocated chunk
             
             for (this.currentChunk = 0; this.currentChunk < this.dividedInput.length; this.currentChunk++) {
                 var chosenMapWorker = getMapWorker();
-                this.chosenReduceWorker = getReduceWorker();
+                this.chosenReduceWorker = getReduceWorker(); // choose a reduce worker's name that will be sent with the swarm
                 console.log(">>>>> [Balancer] sent swarm to worker " + chosenMapWorker + " and reducer " + this.chosenReduceWorker);
-
-                //this.swarm("executeMapPhase", chosenMapWorker);
-
+                this.swarm("executeMapPhase", chosenMapWorker);
             }
         }
     },    
     executeMapPhase:{
         node:"*",
         code:function() {
-            console.log(">>>>>>>>>> [" + thisAdapter.nodeName + "] processing chunk: " + 
-                this.currentChunk + " with data: " + Object.keys(this.dividedInput[this.currentChunk]));
+            console.log(">>>>>>>>>> [" + thisAdapter.nodeName + "] processing chunk: " + this.currentChunk);
+                // + " with data: " + Object.keys(this.dividedInput[this.currentChunk]));
             
             var arrayOfWords = Object.keys(this.dividedInput[this.currentChunk])[0].split(" ");
-            this.mapPhaseResults = [];
+            this.mapPhaseResults = []; // array of objects; each object contains a single key/value pair
             for (var i = 0; i < arrayOfWords.length; i++) {
                 // execute local reduce
                 var found = false;
@@ -91,38 +88,37 @@ var mapReduceSwarm =
             if (ctx.partialResults == null || ctx.partialResults == undefined) {
                 ctx.partialResults = this.mapPhaseResults;
             } else {
-                // TODO: move this code into a function into the reducer
                 for (var i = 0; i < this.mapPhaseResults.length; i++) {
                     var word = Object.keys(this.mapPhaseResults[i])[0];
                     var found = false;
-                    for (var j = 0; j < ctx.partialResults.length; j++) {
+                    for (var j = 0; j < ctx.partialResults.length; j++) { // search if the word already exists
                         if (word == Object.keys(ctx.partialResults[j])[0]) {
                             ctx.partialResults[j][word] += 1;
                             found = true;
                         }
                     }
-                    if (!found) {
+                    if (!found) { // it's a new word
                         ctx.partialResults.push(this.mapPhaseResults[i]);
                     }
                 }
             }
             
             console.log(">>>>>>>>>>>>>>>>>>>> [" + thisAdapter.nodeName + "] partial results array with " + ctx.partialResults.length + " objects");
-
+            this.mapPhaseResults = null; // we don't need to carry further these results with this swarm
             this.swarm("checkIfFinished");
         }
     },
-    checkIfFinished:{
+    checkIfFinished:{ // verify if all reducers finished their jobs
         node:"Balancer",
         code:function() {
             var ctx = getContext("balancer");
             ctx.finishedReducerJobs++;
 
-            if (ctx.finishedReducerJobs == this.chunkCount) {
+            if (ctx.finishedReducerJobs == this.chunkCount) { // the last swarm received will execute this
                 console.log("> all reducers have finished their jobs");
                 var reduceWorkers = getAllReduceWorkers();
-                for (var i = 0; i < reduceWorkers.length; i++) {
-                    this.swarm("getPartialFinalResults", reduceWorkers[i]);
+                for (var i = 0; i < reduceWorkers.length; i++) { // send a swarm to each reduce worker to get the partial results stored in their context
+                    this.swarm("getPartialFinalResults", reduceWorkers[i].workerName);
                 }
             }
         }
@@ -131,8 +127,8 @@ var mapReduceSwarm =
         node:"*",
         code:function() {
             var ctx = getContext("reducerResults");
-            this.reducerPartialFinalResults = ctx.partialResults;
-            ctx.partialResults = null;
+            this.reducerPartialFinalResults = ctx.partialResults; // 
+            ctx.partialResults = null; // reset node's data for future tasks
             this.swarm("finalPhase");
         }
     },
@@ -145,9 +141,9 @@ var mapReduceSwarm =
             ctx.finalResults = ctx.finalResults.concat(this.reducerPartialFinalResults);
             ctx.reducersResponseCounter++;
 
-            if (ctx.reducersResponseCounter == reduceWorkers.length) {
-                this.results = [];
-                // TODO: move this code into a function into the balancer
+            if (ctx.reducersResponseCounter == reduceWorkers.length) { // we have received all the partial responses from reducer workers
+                this.results = []; // contains the final results that will be sent to the client
+                // execute the final reduce
                 for (var i = 0; i < ctx.finalResults.length; i++) {
                     var word = Object.keys(ctx.finalResults[i])[0];
                     var found = false;
